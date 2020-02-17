@@ -55,7 +55,7 @@ def request_optimisation(event, context):
     things = body["things"]
     domainName = event["requestContext"]["domainName"]
     stage = event["requestContext"]["stage"]
-    connectionID = event["requestContext"].get("connectionID")
+    connectionID = event["requestContext"].get("connectionId")
     
     payload_dict = {
         "body" : {
@@ -66,7 +66,7 @@ def request_optimisation(event, context):
             "stage": stage,
         }
     }
-    payload = json.dumps(payload_dict).encode('utf-8')
+    payload = json.dumps(payload_dict)
     
     lmbda.invoke(
         FunctionName="sls-ws-delay-dev-returnOptimisation",
@@ -86,7 +86,7 @@ def return_optimisation(event, context):
     # Delay to simulate some really dope calculations
     
     logger.info(event)  
-    body = _get_body(event)
+    body = event.get("body", "")
     for attribute in ["connectionID", "stuff", "things", "domainName", "stage"]:
         if attribute not in body:
             logger.debug(f"Failed: '{attribute}' not in message dict.")
@@ -101,7 +101,11 @@ def return_optimisation(event, context):
     connections = _get_all_connections()
     time.sleep(60)
 
-    message = {"message": "Optimisation succesfull"}
+    message = {
+        "message": "Optimisation succesfull",
+        "stuff": stuff,
+        "things": things
+    }
     logger.debug(f"Broadcasting message: {message}")
     data = {"messages": [message]}
     pass_event = {"requestContext": {"domainName": domainName, "stage": stage}}
